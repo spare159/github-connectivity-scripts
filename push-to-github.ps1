@@ -143,7 +143,12 @@ if (-not $GitExe) {
 }
 
 # --- 4. Path 1: git push (preserves local commit history) ---
+# Native git writes harmless messages (e.g. "No such remote") to stderr;
+# under ErrorActionPreference=Stop PowerShell 5.1 turns those into terminating
+# errors, so relax it just for this block.
 $pushed = $false
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 if (-not $ApiOnly -and $GitExe) {
     Write-Host ""
     Write-Host "[Path 1] git push (keeping local commit history)..." -ForegroundColor Cyan
@@ -163,6 +168,7 @@ if (-not $ApiOnly -and $GitExe) {
     Write-Host ""
     Write-Host "[Path 1] skipped (git.exe not found)." -ForegroundColor Yellow
 }
+$ErrorActionPreference = $prevEap
 
 # --- 5. Path 2: REST API upload (only api.github.com needed) ---
 if (-not $pushed) {
