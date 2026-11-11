@@ -1,0 +1,9 @@
+# WorkBuddy workspace data (local only)
+.workbuddy/
+
+# Generated at runtime by apply-github-hosts.ps1
+hosts.backup.txt
+github-hosts-result.txt
+
+# Temporary Edge profile
+gh-edge/
