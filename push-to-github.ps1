@@ -39,7 +39,8 @@ if (Test-Path $TokenFile -PathType Container) {
 
 $token = ''
 if (Test-Path $tokenSource -PathType Leaf) {
-    $token = (Get-Content $tokenSource -Raw -ErrorAction Stop).Trim()
+    $raw = Get-Content $tokenSource -Raw -ErrorAction Stop
+    if ($null -ne $raw) { $token = $raw.Trim() }
 }
 
 if ([string]::IsNullOrWhiteSpace($token)) {
