@@ -7,3 +7,6 @@ github-hosts-result.txt
 
 # Temporary Edge profile
 gh-edge/
+
+# GitHub Personal Access Token (NEVER commit)
+.git-token
