@@ -24,22 +24,41 @@ $ErrorActionPreference = 'Stop'
 
 $tokenPage = 'https://github.com/settings/tokens/new?description=WorkBuddy&scopes=repo'
 
-if (-not (Test-Path $TokenFile)) {
-    Write-Host "No token file yet: $TokenFile" -ForegroundColor Yellow
-    Write-Host "Opening the GitHub token page in your default browser..."
+# Accept either a plain .git-token FILE or a .git-token FOLDER containing a .txt
+$tokenSource = $TokenFile
+if (Test-Path $TokenFile -PathType Container) {
+    $txt = Get-ChildItem -Path $TokenFile -File -Filter '*.txt' -ErrorAction SilentlyContinue |
+           Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($txt) {
+        $tokenSource = $txt.FullName
+        Write-Host "Using text file inside folder: $($txt.Name)"
+    } else {
+        $tokenSource = Join-Path $TokenFile 'token.txt'
+    }
+}
+
+$token = ''
+if (Test-Path $tokenSource -PathType Leaf) {
+    $token = (Get-Content $tokenSource -Raw -ErrorAction Stop).Trim()
+}
+
+if ([string]::IsNullOrWhiteSpace($token)) {
+    Write-Host ""
+    Write-Host "No token yet. Opening the GitHub token page in your browser..." -ForegroundColor Yellow
     Write-Host "URL: $tokenPage"
     try { Start-Process $tokenPage } catch { Write-Host "(Could not open browser; copy the URL above.)" }
     Write-Host ""
-    Write-Host "Steps: log in -> name the token -> make sure 'repo' is checked -> Generate token"
-    Write-Host "       -> copy it -> save ONLY the token, one line, into .git-token"
-    Write-Host "       -> run this script again."
-    Write-Host "If github.com will not load, open that URL from your phone's mobile data."
+    Write-Host "1) Log in -> name the token -> check 'repo' -> Generate token"
+    Write-Host "2) Copy the token, paste it as ONE LINE into this file and save:"
+    Write-Host "   $tokenSource" -ForegroundColor Cyan
+    Write-Host "3) Run this script again."
+    Write-Host "If github.com will not load, open that URL using your phone's mobile data."
     exit 1
 }
 
-$token = (Get-Content $TokenFile -Raw).Trim()
 if ($token.Length -lt 20) {
-    Write-Host "ERROR: token looks too short. Check .git-token contents." -ForegroundColor Red
+    Write-Host "ERROR: token looks too short. Check the contents of:" -ForegroundColor Red
+    Write-Host "  $tokenSource"
     exit 1
 }
 Write-Host "Token loaded from local file (length $($token.Length)), content hidden."
